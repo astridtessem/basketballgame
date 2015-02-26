@@ -27,6 +27,7 @@ Mat drawingFrame;
 
 VideoCapture cap;
 
+bool gameStarted=false;
 
 
 void display()
@@ -71,25 +72,52 @@ void calcOpticalFlow(){
     cartToPolar(xy[0], xy[1], magnitude, angle, true);
     resize(magnitude,flow,Size(640,480));
     threshold(flow,flow,10,255,0);
+    flip(flow, flow, 1);
     imshow("flow",flow);
 
 }
 
+void startGameButton(){
+
+    rectangle(drawingFrame, Point(10,10), Point(120,60), Scalar(0,0,255), CV_FILLED);
+    putText(drawingFrame, "Start game" , Point(14,40), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0,255,0), 1, 8, false );
+
+    if(countNonZero(flow(Rect(Point(10,10), Point(120,60))))>500){
+        cout<<"Game started";
+        gameStarted=true;
+    }
+
+
+}
 
 void idle()
 {
 
     cap>>currentFrame;
-    flip(currentFrame, currentFrame, -1);
+
     cvtColor(currentFrame, currentFrameGray, CV_BGR2GRAY);
-    if(!prevFrame.empty()){
-        calcOpticalFlow();
-    }
 
     drawingFrame=currentFrame.clone();
-    rectangle(drawingFrame, Point(10,10), Point(40,40), Scalar(0,0,255), CV_FILLED);
+    flip(drawingFrame, drawingFrame, 1);
+
+    if(!prevFrame.empty()){
+        calcOpticalFlow();
+
+        if(!gameStarted){
+            startGameButton();
+        }
+        if(gameStarted){
+             putText(drawingFrame, "MIXED BALL IS STARTED!!" , Point(10,300), FONT_HERSHEY_SIMPLEX, 1.5, Scalar(0,255,0), 1, 8, false );
+        }
+
+    }
+
+    flip(drawingFrame, drawingFrame, 0);
+
 
 }
+
+
 
 
 
