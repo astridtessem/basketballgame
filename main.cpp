@@ -1,17 +1,4 @@
-#include <cv.h>
-#include <highgui.h>
-#include <GL/gl.h>
-#include <GL/glext.h>
-#include <GL/glu.h>
-#include <GL/glut.h>
-#include <stdio.h>
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <unistd.h>
-#include <opencv2/video/background_segm.hpp>
-
-
+#include<includes.h>
 
 
 //namespaces
@@ -33,7 +20,7 @@ bool gameStarted=false;
 void display()
 {
 
-    glDrawPixels(drawingFrame.size().width, drawingFrame.size().height, GL_BGR, GL_UNSIGNED_BYTE, drawingFrame.ptr() );
+    glDrawPixels(drawingFrame.size().width, drawingFrame.size().height, GL_BGR_EXT, GL_UNSIGNED_BYTE, drawingFrame.ptr() );
 
     glutSwapBuffers();
     glutPostRedisplay();
@@ -98,6 +85,7 @@ void idle()
     cvtColor(currentFrame, currentFrameGray, CV_BGR2GRAY);
 
     drawingFrame=currentFrame.clone();
+
     flip(drawingFrame, drawingFrame, 1);
 
     if(!prevFrame.empty()){
