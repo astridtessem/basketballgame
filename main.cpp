@@ -14,13 +14,48 @@ Mat drawingFrame;
 
 VideoCapture cap;
 
+GLfloat ambientColor[] = {0.2, 0.2, 0.2, 1.0}; //Color(0.2, 0.2, 0.2)
+
 bool gameStarted=false;
 
+void addLight(){
+
+  glEnable(GL_LIGHTING);
+   glEnable(GL_LIGHT0);
+
+    GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+    GLfloat mat_shininess[] = { 50.0 };
+    GLfloat light_position[] = { 0.0, 0.0, -50.0, 0.0 };
+    glShadeModel (GL_SMOOTH);
+
+
+    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+    glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+
+}
 
 void display()
 {
 
     glDrawPixels(drawingFrame.size().width, drawingFrame.size().height, GL_BGR_EXT, GL_UNSIGNED_BYTE, drawingFrame.ptr() );
+
+    if(gameStarted){
+        glPushMatrix();
+        glColorMaterial(GL_FRONT, GL_DIFFUSE);
+        glEnable(GL_COLOR_MATERIAL);
+        glColor3f(1,0.45f,0);
+        glTranslated(0.6,0,0);
+        glutSolidSphere(0.1, 20, 20);
+
+        glLoadIdentity();
+        glColor3f(1,0.45f,0);
+        glTranslated(-0.6,0,0);
+        glRotated(70,1,0,0);
+        glutSolidTorus(0.02,0.3,20, 20);
+        glPopMatrix();
+    }
+
 
     glutSwapBuffers();
     glutPostRedisplay();
@@ -29,8 +64,6 @@ void display()
     cvtColor(prevFrame, prevFrameGray, CV_BGR2GRAY);
 
 }
-
-
 
 
 void keyboard( unsigned char key, int x, int y )
@@ -95,7 +128,8 @@ void idle()
             startGameButton();
         }
         if(gameStarted){
-             putText(drawingFrame, "MIXED BALL IS STARTED!!" , Point(10,300), FONT_HERSHEY_SIMPLEX, 1.5, Scalar(0,255,0), 1, 8, false );
+
+
         }
 
     }
@@ -126,6 +160,7 @@ int main(int argc, char** argv)
     glutKeyboardFunc( keyboard );
     glutIdleFunc( idle );
 
+    addLight();
     // start GUI loop
     glutMainLoop();
 
