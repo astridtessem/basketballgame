@@ -1,4 +1,4 @@
-#include<includes.h>
+#include "includes.h"
 
 
 //namespaces
@@ -14,9 +14,12 @@ Mat drawingFrame;
 
 VideoCapture cap;
 
-GLfloat ambientColor[] = {0.2, 0.2, 0.2, 1.0}; //Color(0.2, 0.2, 0.2)
 
 bool gameStarted=false;
+bool choosePower=false;
+bool chooseDirection=false;
+
+int powerCount=0;
 
 void addLight(){
 
@@ -106,7 +109,17 @@ void startGameButton(){
         cout<<"Game started";
         gameStarted=true;
     }
+}
 
+void power(){
+
+        if(countNonZero(flow(Rect(Point(500,230), Point(520,250))))>100){
+            powerCount++;
+            cout<<"poooower: " << powerCount << "\n";
+        //putText(drawingFrame, char(powerCount) , Point(14,40), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0,255,0), 1, 8, false );
+
+        //choosePower=true;
+        }
 
 }
 
@@ -127,7 +140,11 @@ void idle()
         if(!gameStarted){
             startGameButton();
         }
-        if(gameStarted){
+        else if(!choosePower){
+
+            power();
+           rectangle(drawingFrame, Point(490,220), Point(530,260), Scalar(0,0,255), CV_FILLED);
+
 
 
         }
