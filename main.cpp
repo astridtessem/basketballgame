@@ -9,15 +9,16 @@ Mat currentFrameGray;
 Mat prevFrame;
 Mat prevFrameGray;
 Mat flow;
+Mat difference;
 Mat drawingFrame;
+Mat background;
+Mat backgroundgray;
 
 VideoCapture cap;
 
 GLfloat ambientColor[] = { 0.2, 0.2, 0.2, 1.0 }; //Color(0.2, 0.2, 0.2)
 
 bool gameStarted = false;
-
-
 
 void addLight(){
 
@@ -65,12 +66,13 @@ void display(){
 		cvtColor(prevFrame, prevFrameGray, CV_BGR2GRAY);
 }
 
-
 void keyboard(unsigned char key, int x, int y){
 	switch (key){
 	case 'q':
 		exit(0);
 		break;
+	case 'b':
+		background = currentFrameGray.clone();
 
 	default:
 		break;
@@ -78,7 +80,6 @@ void keyboard(unsigned char key, int x, int y){
 }
 
 void calcOpticalFlow(){
-
 	calcOpticalFlowFarneback(prevFrameGray, currentFrameGray, flow, 0.5, 1, 3, 1, 5, 1.1, 0);
 	Mat xy[2];
 	Mat magnitude;
@@ -88,9 +89,15 @@ void calcOpticalFlow(){
 	cartToPolar(xy[0], xy[1], magnitude, angle, true);
 	resize(magnitude, flow, Size(640, 480));
 	threshold(flow, flow, 10, 255, 0);
-	flip(flow, flow, 1);
+	cv::flip(flow, flow, 1);
 	imshow("flow", flow);
+}
 
+void subtractImages(){
+	absdiff(background, currentFrameGray, difference);
+	threshold(difference, difference, 50, 255, 0);
+	cv::flip(difference, difference, 1);
+	imshow("Difference", difference);
 }
 
 void startGameButton(){
@@ -98,12 +105,10 @@ void startGameButton(){
 	rectangle(drawingFrame, Point(10, 10), Point(120, 60), Scalar(0, 0, 255), CV_FILLED);
 	putText(drawingFrame, "Start game", Point(14, 40), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 1, 8, false);
 
-	if (countNonZero(flow(Rect(Point(10, 10), Point(120, 60))))>500){
+	if (countNonZero(difference(Rect(Point(10, 10), Point(120, 60))))>500){
 		cout << "Game started";
 		gameStarted = true;
 	}
-
-
 }
 
 void idle(){
@@ -114,25 +119,23 @@ void idle(){
 
 	drawingFrame = currentFrame.clone();
 
-	flip(drawingFrame, drawingFrame, 1);
+	cv::flip(drawingFrame, drawingFrame, 1);
 
-	if (!prevFrame.empty()){
-		calcOpticalFlow();
+	
+	if (!background.empty()){
+		//calcOpticalFlow();
+		subtractImages();
 		if (!gameStarted){
 			startGameButton();
 		}
 		if (gameStarted){
-			
+
 		}
-
 	}
-	flip(drawingFrame, drawingFrame, 0);
+
+	
+	cv::flip(drawingFrame, drawingFrame, 0);
 }
-
-
-
-
-
 
 int main(int argc, char** argv)
 {
@@ -140,9 +143,10 @@ int main(int argc, char** argv)
 	// initialize GLUT
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
-	glutInitWindowPosition(20, 20);
+	glutInitWindowPosition(100, 100);
 	glutInitWindowSize(640, 480);
-	glutCreateWindow("OpenGL / OpenCV Example");
+	glutCreateWindow("Basket Ball Game");
+	//glutFullScreen();
 
 	// set up GUI callback functions
 	glutDisplayFunc(display);
