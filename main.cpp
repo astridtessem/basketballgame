@@ -42,6 +42,7 @@ void display(){
 	glDrawPixels(drawingFrame.size().width, drawingFrame.size().height, GL_BGR_EXT, GL_UNSIGNED_BYTE, drawingFrame.ptr());
 
 	if (gameStarted){
+
 		glPushMatrix();
 		glColorMaterial(GL_FRONT, GL_DIFFUSE);
 		glEnable(GL_COLOR_MATERIAL);
@@ -55,6 +56,7 @@ void display(){
 		glRotated(70, 1, 0, 0);
 		glutSolidTorus(0.02, 0.3, 20, 20);
 		glPopMatrix();
+
 	}
 
 
@@ -73,6 +75,8 @@ void keyboard(unsigned char key, int x, int y){
 		break;
 	case 'b':
 		background = currentFrameGray.clone();
+		resize(background, background, Size(320, 240));
+		break;
 
 	default:
 		break;
@@ -94,6 +98,7 @@ void calcOpticalFlow(){
 }
 
 void subtractImages(){
+	resize(currentFrameGray, currentFrameGray, Size(320, 240));
 	absdiff(background, currentFrameGray, difference);
 	threshold(difference, difference, 50, 255, 0);
 	cv::flip(difference, difference, 1);
@@ -101,11 +106,10 @@ void subtractImages(){
 }
 
 void startGameButton(){
-
 	rectangle(drawingFrame, Point(10, 10), Point(120, 60), Scalar(0, 0, 255), CV_FILLED);
 	putText(drawingFrame, "Start game", Point(14, 40), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 1, 8, false);
 
-	if (countNonZero(difference(Rect(Point(10, 10), Point(120, 60))))>500){
+	if (countNonZero(difference(Rect(Point(10, 10), Point(60, 30))))>500){
 		cout << "Game started";
 		gameStarted = true;
 	}
@@ -114,13 +118,9 @@ void startGameButton(){
 void idle(){
 
 	cap >> currentFrame;
-
 	cvtColor(currentFrame, currentFrameGray, CV_BGR2GRAY);
-
 	drawingFrame = currentFrame.clone();
-
 	cv::flip(drawingFrame, drawingFrame, 1);
-
 	
 	if (!background.empty()){
 		//calcOpticalFlow();
@@ -133,7 +133,6 @@ void idle(){
 		}
 	}
 
-	
 	cv::flip(drawingFrame, drawingFrame, 0);
 }
 
