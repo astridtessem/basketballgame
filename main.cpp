@@ -19,6 +19,10 @@ VideoCapture cap;
 GLfloat ambientColor[] = { 0.2, 0.2, 0.2, 1.0 }; //Color(0.2, 0.2, 0.2)
 
 bool gameStarted = false;
+bool powerChoosen = false;
+int power = 0;
+bool choosingPower=false;
+bool direction = false;
 
 void addLight(){
 
@@ -56,7 +60,6 @@ void display(){
 		glRotated(70, 1, 0, 0);
 		glutSolidTorus(0.02, 0.3, 20, 20);
 		glPopMatrix();
-
 	}
 
 
@@ -100,9 +103,11 @@ void calcOpticalFlow(){
 void subtractImages(){
 	resize(currentFrameGray, currentFrameGray, Size(320, 240));
 	absdiff(background, currentFrameGray, difference);
+	resize(difference,difference,Size(640,480));
 	threshold(difference, difference, 50, 255, 0);
 	cv::flip(difference, difference, 1);
 	imshow("Difference", difference);
+
 }
 
 void startGameButton(){
@@ -115,21 +120,36 @@ void startGameButton(){
 	}
 }
 
+void choosePower(){
+    rectangle(drawingFrame, Point(480, 220), Point(540, 260), Scalar(0, 0, 255), CV_FILLED);
+
+    if(countNonZero(difference(Rect(Point(480, 220), Point(540, 260))))>500){
+        choosingPower=true;
+        power++;
+        cout<<power<<"\n";
+    }
+    else if(choosingPower==true){
+            powerChoosen=true;
+
+            cout<<"final power is: " << power;
+    }
+}
+
 void idle(){
 
 	cap >> currentFrame;
 	cvtColor(currentFrame, currentFrameGray, CV_BGR2GRAY);
 	drawingFrame = currentFrame.clone();
 	cv::flip(drawingFrame, drawingFrame, 1);
-	
+
 	if (!background.empty()){
 		//calcOpticalFlow();
 		subtractImages();
 		if (!gameStarted){
 			startGameButton();
 		}
-		if (gameStarted){
-
+		else if (!powerChoosen){
+            choosePower();
 		}
 	}
 
