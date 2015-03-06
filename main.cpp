@@ -180,10 +180,13 @@ void calculateHeight(){
 
 void idle(){
 
-	cap >> currentFrame;
-	cvtColor(currentFrame, currentFrameGray, CV_BGR2GRAY);
-	drawingFrame = currentFrame.clone();
-	cv::flip(drawingFrame, drawingFrame, 1);
+	if (!(gameStarted && powerChoosen && directionChoosen && ballThrown && !ballLanded)){
+		cap >> currentFrame;
+		cvtColor(currentFrame, currentFrameGray, CV_BGR2GRAY);
+	}
+		drawingFrame = currentFrame.clone();
+		cv::flip(drawingFrame, drawingFrame, 1);
+	
 
 	if (!background.empty()){
 		//calcOpticalFlow();
