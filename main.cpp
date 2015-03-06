@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include "includes.h"
 
 //namespaces
@@ -20,9 +21,13 @@ GLfloat ambientColor[] = { 0.2, 0.2, 0.2, 1.0 }; //Color(0.2, 0.2, 0.2)
 
 bool gameStarted = false;
 bool powerChoosen = false;
+bool directionChoosen = false;
 int power = 0;
+double tempDirection = 0;
+double direction;
+double step = M_PI/20;
 bool choosingPower=false;
-bool direction = false;
+bool choosingDirection = false;
 
 void addLight(){
 
@@ -106,7 +111,7 @@ void subtractImages(){
 	resize(difference,difference,Size(640,480));
 	threshold(difference, difference, 50, 255, 0);
 	cv::flip(difference, difference, 1);
-	imshow("Difference", difference);
+	/*imshow("Difference", difference);*/
 
 }
 
@@ -130,9 +135,21 @@ void choosePower(){
     }
     else if(choosingPower==true){
             powerChoosen=true;
-
             cout<<"final power is: " << power;
     }
+}
+
+void chooseDirection(){
+	if (countNonZero(difference(Rect(Point(480, 220), Point(540, 260))))>500){
+		choosingDirection = true;
+		tempDirection+=step;
+		cout << abs(sin(tempDirection))*45 << "\n";
+	}
+	else if (choosingDirection == true){
+		directionChoosen = true;
+		direction = abs(sin(tempDirection)) * 45;
+		cout << "final direction is: " << direction << endl;
+	}
 }
 
 void idle(){
@@ -150,6 +167,9 @@ void idle(){
 		}
 		else if (!powerChoosen){
             choosePower();
+		}
+		else if (!directionChoosen && powerChoosen){
+			chooseDirection();
 		}
 	}
 
