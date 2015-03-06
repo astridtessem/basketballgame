@@ -29,6 +29,16 @@ double direction;
 double step = M_PI/20;
 bool choosingPower=false;
 bool choosingDirection = false;
+bool ballThrown = false;
+bool ballLanded=false;
+
+double heightOfBall=0;
+
+Point2f ballPos=Point2f(0.6,0);
+
+double powerX=0;
+double powerY=0;
+
 
 void addLight(){
 
@@ -45,11 +55,16 @@ void addLight(){
 	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+
 }
 
 void display(){
 
 	glDrawPixels(drawingFrame.size().width, drawingFrame.size().height, GL_BGR_EXT, GL_UNSIGNED_BYTE, drawingFrame.ptr());
+
+	glClear(GL_DEPTH_BUFFER_BIT);
 
 	if (gameStarted){
 
@@ -57,7 +72,7 @@ void display(){
 		glColorMaterial(GL_FRONT, GL_DIFFUSE);
 		glEnable(GL_COLOR_MATERIAL);
 		glColor3f(1, 0.45f, 0);
-		glTranslated(0.6, 0, 0);
+		glTranslated(0.6-powerX/400, 0+heightOfBall/500, 0);
 		glutSolidSphere(0.1, 20, 20);
 
 		glLoadIdentity();
@@ -153,6 +168,16 @@ void chooseDirection(){
 	}
 }
 
+void calculateHeight(){
+
+    heightOfBall=heightOfBall+powerY;
+    powerY=powerY-5;
+    if(heightOfBall<-420){
+        ballLanded=true;
+    }
+    cout<<"\n powerY: " <<powerY;
+}
+
 void idle(){
 
 	cap >> currentFrame;
@@ -169,10 +194,28 @@ void idle(){
 		else if (!powerChoosen){
             choosePower();
 		}
-		else if (!directionChoosen && powerChoosen){
+		else if (!directionChoosen){
 			chooseDirection();
 		}
-	}
+		else if (!ballThrown){
+            powerX=power*cos((direction*M_PI)/180);
+            powerY=power*sin((direction*M_PI)/180);
+            ballThrown=true;
+		}
+        else if(!ballLanded){
+                powerX=powerX+power*cos((direction*M_PI)/180);
+            calculateHeight();
+        }
+
+
+
+//            cout<< "\n power:" << power;
+//            cout<< "\n direction:" << direction;
+//            cout<<" \n powerX: " << powerX;
+//            cout<<" \n powerY: " << powerY;
+
+		}
+
 
 	cv::flip(drawingFrame, drawingFrame, 0);
 }
