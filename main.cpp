@@ -121,7 +121,6 @@ void startGameButton(){
 }
 
 void choosePower(){
-    rectangle(drawingFrame, Point(480, 220), Point(540, 260), Scalar(0, 0, 255), CV_FILLED);
 
     if(countNonZero(difference(Rect(Point(480, 220), Point(540, 260))))>500){
         choosingPower=true;
