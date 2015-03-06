@@ -22,7 +22,8 @@ GLfloat ambientColor[] = { 0.2, 0.2, 0.2, 1.0 }; //Color(0.2, 0.2, 0.2)
 bool gameStarted = false;
 bool powerChoosen = false;
 bool directionChoosen = false;
-int power = 0;
+double tempPower = 0;
+double power = 0;
 double tempDirection = 0;
 double direction;
 double step = M_PI/20;
@@ -129,11 +130,12 @@ void choosePower(){
 
     if(countNonZero(difference(Rect(Point(480, 220), Point(540, 260))))>500){
         choosingPower=true;
-        power++;
-        cout<<power<<"\n";
+        tempPower+=step;
+        cout << abs(sin(tempPower))*45 << "\n";
     }
     else if(choosingPower==true){
             powerChoosen=true;
+            power = abs(sin(tempPower)) * 45;
             cout<<"final power is: " << power;
     }
 }
