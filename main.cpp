@@ -72,8 +72,8 @@ void display(){
 		glColorMaterial(GL_FRONT, GL_DIFFUSE);
 		glEnable(GL_COLOR_MATERIAL);
 		glColor3f(1, 0.45f, 0);
-		glTranslated(0.6-powerX/400, 0+heightOfBall/500, 0);
-		glutSolidSphere(0.1, 20, 20);
+		glTranslated(0.6-powerX/800, 0+heightOfBall/1000, 0);
+		glutSolidSphere(0.05, 20, 20);
 
 		glLoadIdentity();
 		glColor3f(1, 0.45f, 0);
@@ -125,7 +125,7 @@ void subtractImages(){
 	resize(currentFrameGray, currentFrameGray, Size(320, 240));
 	absdiff(background, currentFrameGray, difference);
 	resize(difference,difference,Size(640,480));
-	threshold(difference, difference, 50, 255, 0);
+	threshold(difference, difference, 30, 255, 0);
 	cv::flip(difference, difference, 1);
 	/*imshow("Difference", difference);*/
 
@@ -143,6 +143,9 @@ void startGameButton(){
 
 void choosePower(){
 
+	rectangle(drawingFrame, Point(580, 10), Point(630, 160), Scalar(0, 0, 0), CV_FILLED);
+	rectangle(drawingFrame, Point(580, 160 - (abs(sin(tempPower)) * 45 * 10 / 3)), Point(630, 160), Scalar(0, 0, 255), CV_FILLED);
+
     if(countNonZero(difference(Rect(Point(480, 220), Point(540, 260))))>500){
         choosingPower=true;
         tempPower+=step;
@@ -156,6 +159,9 @@ void choosePower(){
 }
 
 void chooseDirection(){
+
+	line(drawingFrame, Point(510, 240), Point(510 - cos(abs(sin(tempDirection))) * 110, 240 - sin(abs(sin(tempDirection))) * 110), Scalar(0, 0, 255), 5);
+
 	if (countNonZero(difference(Rect(Point(480, 220), Point(540, 260))))>500){
 		choosingDirection = true;
 		tempDirection+=step;
@@ -171,11 +177,11 @@ void chooseDirection(){
 void calculateHeight(){
 
     heightOfBall=heightOfBall+powerY;
-    powerY=powerY-5;
-    if(heightOfBall<-420){
+    powerY=powerY-1;
+    if(heightOfBall<-840){
         ballLanded=true;
     }
-    cout<<"\n powerY: " <<powerY;
+    //cout<<"\n powerY: " <<powerY;
 }
 
 void idle(){
@@ -184,8 +190,8 @@ void idle(){
 		cap >> currentFrame;
 		cvtColor(currentFrame, currentFrameGray, CV_BGR2GRAY);
 	}
-		drawingFrame = currentFrame.clone();
-		cv::flip(drawingFrame, drawingFrame, 1);
+	drawingFrame = currentFrame.clone();
+	cv::flip(drawingFrame, drawingFrame, 1);
 	
 
 	if (!background.empty()){
@@ -206,11 +212,9 @@ void idle(){
             ballThrown=true;
 		}
         else if(!ballLanded){
-                powerX=powerX+power*cos((direction*M_PI)/180);
+			powerX=powerX+power*cos((direction*M_PI)/180);
             calculateHeight();
         }
-
-
 
 //            cout<< "\n power:" << power;
 //            cout<< "\n direction:" << direction;
