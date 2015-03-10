@@ -60,6 +60,51 @@ void addLight(){
 
 }
 
+static void DrawParallelepiped(GLfloat sizeX, GLfloat sizeY, GLfloat sizeZ, GLenum type)
+{
+
+static GLfloat n[6][3] =
+{
+{-1.0, 0.0, 0.0},
+{0.0, 1.0, 0.0},
+{1.0, 0.0, 0.0},
+{0.0, -1.0, 0.0},
+{0.0, 0.0, 1.0},
+{0.0, 0.0, -1.0}
+};
+
+static GLint faces[6][4] =
+{
+{0, 1, 2, 3},
+{3, 2, 6, 7},
+{7, 6, 5, 4},
+{4, 5, 1, 0},
+{5, 6, 2, 1},
+{7, 4, 0, 3}
+};
+
+GLfloat v[8][3];
+GLint i;
+
+v[0][0] = v[1][0] = v[2][0] = v[3][0] = -sizeX / 2;
+v[4][0] = v[5][0] = v[6][0] = v[7][0] = sizeX / 2;
+v[0][1] = v[1][1] = v[4][1] = v[5][1] = -sizeY / 2;
+v[2][1] = v[3][1] = v[6][1] = v[7][1] = sizeY / 2;
+v[0][2] = v[3][2] = v[4][2] = v[7][2] = -sizeZ / 2;
+v[1][2] = v[2][2] = v[5][2] = v[6][2] = sizeZ / 2;
+
+for (i = 5; i >= 0; i--) {
+glBegin(type);
+glNormal3fv(&n[i][0]);
+glVertex3fv(&v[faces[i][0]][0]);
+glVertex3fv(&v[faces[i][1]][0]);
+glVertex3fv(&v[faces[i][2]][0]);
+glVertex3fv(&v[faces[i][3]][0]);
+glEnd();
+}
+
+}
+
 void display(){
 
 	glDrawPixels(drawingFrame.size().width, drawingFrame.size().height, GL_BGR_EXT, GL_UNSIGNED_BYTE, drawingFrame.ptr());
@@ -74,6 +119,30 @@ void display(){
 		glColor3f(1, 0.45f, 0);
 		glTranslated(0.6 - powerX / 800, 0 + heightOfBall / 1000, 0);
 		glutSolidSphere(0.05, 20, 20);
+
+        glLoadIdentity();
+        glColor3f(0, 0, 0);
+        glTranslated(-0.90, 0, 0);
+        glTranslated(0, 0.1, 0);
+        glRotated(87,0,1,0);
+        glRotated(-20,0,0,1);
+
+        DrawParallelepiped(0.6,0.5,0.01,GL_POLYGON);
+
+
+        glLoadIdentity();
+		glColor3f(1, 0.45f, 0);
+		glTranslated(-0.86, 0, 0);
+        glRotated(-20,1,0,0);
+		glutSolidCube(0.05);
+		glTranslated(-0.075, 0, 0);
+        glutSolidCube(0.05);
+
+        glLoadIdentity();
+		glColor3f(1, 0.45f, 0);
+		glTranslated(-0.97, -0.42, 0);
+        glRotated(-20,1,0,0);
+        DrawParallelepiped(0.05,1,0.05,GL_POLYGON);
 
 		glLoadIdentity();
 		glColor3f(1, 0.45f, 0);
@@ -191,7 +260,7 @@ void idle(){
 	}
 	drawingFrame = currentFrame.clone();
 	cv::flip(drawingFrame, drawingFrame, 1);
-	
+
 
 	if (!background.empty()){
 		//calcOpticalFlow();
