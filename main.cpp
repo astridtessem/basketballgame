@@ -72,14 +72,14 @@ void display(){
 		glColorMaterial(GL_FRONT, GL_DIFFUSE);
 		glEnable(GL_COLOR_MATERIAL);
 		glColor3f(1, 0.45f, 0);
-		glTranslated(0.6-powerX/500, 0+heightOfBall/500, 0);
+		glTranslated(0.6 - powerX / 800, 0 + heightOfBall / 1000, 0);
 		glutSolidSphere(0.05, 20, 20);
 
 		glLoadIdentity();
 		glColor3f(1, 0.45f, 0);
-		glTranslated(-0.8, 0, 0);
+		glTranslated(-0.7, 0, 0);
 		glRotated(70, 1, 0, 0);
-		glutSolidTorus(0.01, 0.1, 20, 20);
+		glutSolidTorus(0.01, 0.15, 20, 20);
 		glPopMatrix();
 	}
 
@@ -124,7 +124,7 @@ void calcOpticalFlow(){
 void subtractImages(){
 	resize(currentFrameGray, currentFrameGray, Size(320, 240));
 	absdiff(background, currentFrameGray, difference);
-	resize(difference,difference,Size(1280,720));
+	resize(difference, difference, Size(640, 480));
 	threshold(difference, difference, 30, 255, 0);
 	cv::flip(difference, difference, 1);
 	//imshow("Difference", difference);
@@ -142,13 +142,13 @@ void startGameButton(){
 
 void choosePower(){
 
-	rectangle(drawingFrame, Point(1220, 10), Point(1270, 160), Scalar(0, 0, 0), CV_FILLED);
-	rectangle(drawingFrame, Point(1220, 160 - (abs(sin(tempPower)) * 45 * 10 / 3)), Point(1270, 160), Scalar(0, 0, 255), CV_FILLED);
+	rectangle(drawingFrame, Point(580, 10), Point(630, 160), Scalar(0, 0, 0), CV_FILLED);
+	rectangle(drawingFrame, Point(580, 160 - (abs(sin(tempPower)) * 45 * 10 / 3)), Point(630, 160), Scalar(0, 0, 255), CV_FILLED);
 
-    if(countNonZero(difference(Rect(Point(990, 340), Point(1050, 380))))>500){
+	if (countNonZero(difference(Rect(Point(480, 220), Point(540, 260))))>500){
         choosingPower=true;
         tempPower+=step;
-        cout << abs(sin(tempPower))*45 << "\n";
+        //cout << abs(sin(tempPower))*45 << "\n";
     }
     else if(choosingPower==true){
             powerChoosen=true;
@@ -159,12 +159,12 @@ void choosePower(){
 
 void chooseDirection(){
 
-	line(drawingFrame, Point(1020, 360), Point(1020 - cos(abs(sin(tempDirection))) * 110, 360 - sin(abs(sin(tempDirection))) * 110), Scalar(0, 0, 255), 5);
+	line(drawingFrame, Point(510, 240), Point(510 - cos(abs(sin(tempDirection))) * 110, 240 - sin(abs(sin(tempDirection))) * 110), Scalar(0, 0, 255), 5);
 
-	if (countNonZero(difference(Rect(Point(990, 340), Point(1050, 380))))>500){
+	if (countNonZero(difference(Rect(Point(480, 220), Point(540, 260))))>500){
 		choosingDirection = true;
 		tempDirection+=step;
-		cout << abs(sin(tempDirection))*45 << "\n";
+		//cout << abs(sin(tempDirection))*45 << "\n";
 	}
 	else if (choosingDirection == true){
 		directionChoosen = true;
@@ -177,7 +177,7 @@ void calculateHeight(){
 
     heightOfBall=heightOfBall+powerY;
     powerY=powerY-1;
-    if(heightOfBall<-840){
+    if(heightOfBall<-600){
         ballLanded=true;
     }
     //cout<<"\n powerY: " <<powerY;
@@ -229,13 +229,11 @@ void idle(){
 int main(int argc, char** argv)
 {
 	cap = VideoCapture(0);
-	cap.set(CV_CAP_PROP_FRAME_WIDTH, 1280);
-	cap.set(CV_CAP_PROP_FRAME_HEIGHT, 720);
 	// initialize GLUT
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 	glutInitWindowPosition(100, 100);
-	glutInitWindowSize(1280, 720);
+	glutInitWindowSize(640, 480);
 	glutCreateWindow("B0sket Ball Game");
 	//glutFullScreen();
 
