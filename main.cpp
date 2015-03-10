@@ -15,6 +15,8 @@ Mat drawingFrame;
 Mat background;
 Mat backgroundgray;
 
+Mat floorImg = imread("floor.png");
+
 VideoCapture cap;
 
 GLfloat ambientColor[] = { 0.2, 0.2, 0.2, 1.0 }; //Color(0.2, 0.2, 0.2)
@@ -109,10 +111,11 @@ void display(){
 
 	glDrawPixels(drawingFrame.size().width, drawingFrame.size().height, GL_BGR_EXT, GL_UNSIGNED_BYTE, drawingFrame.ptr());
 
-	glClear(GL_DEPTH_BUFFER_BIT);
 
 	if (gameStarted){
 
+		glDrawPixels(floorImg.size().width, floorImg.size().height, GL_BGR_EXT, GL_UNSIGNED_BYTE, floorImg.ptr());
+		glClear(GL_DEPTH_BUFFER_BIT);
 		glPushMatrix();
 		glColorMaterial(GL_FRONT, GL_DIFFUSE);
 		glEnable(GL_COLOR_MATERIAL);
@@ -138,7 +141,8 @@ void display(){
 		glTranslated(-0.075, 0, 0);
         glutSolidCube(0.05);
 
-        glLoadIdentity();
+        
+		glLoadIdentity();
 		glColor3f(1, 0.45f, 0);
 		glTranslated(-0.97, -0.42, 0);
         glRotated(-20,1,0,0);
@@ -150,6 +154,7 @@ void display(){
 		glRotated(70, 1, 0, 0);
 		glutSolidTorus(0.01, 0.15, 20, 20);
 		glPopMatrix();
+
 	}
 
 
@@ -298,6 +303,8 @@ void idle(){
 int main(int argc, char** argv)
 {
 	cap = VideoCapture(0);
+
+	flip(floorImg, floorImg, -1);
 	// initialize GLUT
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
