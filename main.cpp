@@ -15,7 +15,7 @@ Mat drawingFrame;
 Mat background;
 Mat backgroundgray;
 
-Mat floorImg = imread("floor.png");
+Mat floorImg = imread("src/floor.png");
 
 VideoCapture cap;
 
@@ -34,13 +34,14 @@ bool choosingDirection = false;
 bool ballThrown = false;
 bool ballLanded=false;
 
+int hitBoard = 1;
+
 double heightOfBall=0;
 
 Point2f ballPos=Point2f(0.6,0);
 
 double powerX=0;
 double powerY=0;
-
 
 void addLight(){
 
@@ -166,6 +167,23 @@ void display(){
 		cvtColor(prevFrame, prevFrameGray, CV_BGR2GRAY);
 }
 
+void reset(){
+	power = 0;
+	direction = 0;
+	powerX = 0;
+	powerY = 0;
+	tempDirection = 0;
+	tempPower = 0;
+	hitBoard = 1;
+	heightOfBall = 0;
+	powerChoosen = false;
+	directionChoosen = false;
+	choosingDirection = false;
+	choosingPower = false;
+	ballLanded = false;
+	ballThrown = false;
+}
+
 void keyboard(unsigned char key, int x, int y){
 	switch (key){
 	case 'q':
@@ -175,7 +193,9 @@ void keyboard(unsigned char key, int x, int y){
 		background = currentFrameGray.clone();
 		resize(background, background, Size(320, 240));
 		break;
-
+	case 'r':
+		reset();
+		break;
 	default:
 		break;
 	}
@@ -199,7 +219,7 @@ void subtractImages(){
 	resize(currentFrameGray, currentFrameGray, Size(320, 240));
 	absdiff(background, currentFrameGray, difference);
 	resize(difference, difference, Size(640, 480));
-	threshold(difference, difference, 30, 255, 0);
+	threshold(difference, difference, 50, 255, 0);
 	cv::flip(difference, difference, 1);
 	//imshow("Difference", difference);
 }
@@ -251,8 +271,8 @@ void calculateHeight(){
 
     heightOfBall=heightOfBall+powerY;
     powerY=powerY-1;
-    if(heightOfBall<-600){
-        ballLanded=true;
+    if(heightOfBall<-800){
+		powerY = -powerY;
     }
     //cout<<"\n powerY: " <<powerY;
 }
@@ -280,22 +300,34 @@ void idle(){
 			chooseDirection();
 		}
 		else if (!ballThrown){
+			cout << direction << endl;
             powerX=power*cos((direction*M_PI)/180);
             powerY=power*sin((direction*M_PI)/180);
             ballThrown=true;
 		}
         else if(!ballLanded){
-			powerX=powerX+power*cos((direction*M_PI)/180);
+			powerX=powerX+power*cos((direction*M_PI)/180) * hitBoard;
+			cout << "powerX: " << powerX << endl;
+			if (powerX > 1.7*800){
+				ballLanded = true;
+			}
+			if (powerX < -0.5 * 800){
+				ballLanded = true;
+			}
+
+			if (powerX > 1.45 * 800 && powerX < 1.50*800){ 
+				if (heightOfBall > -200 && heightOfBall < 400){
+					hitBoard = -1;
+				}
+			}
+
             calculateHeight();
         }
-
-//            cout<< "\n power:" << power;
-//            cout<< "\n direction:" << direction;
-//            cout<<" \n powerX: " << powerX;
-//            cout<<" \n powerY: " << powerY;
-
+		else if (ballLanded){
+			reset();
 		}
 
+	}
 
 	cv::flip(drawingFrame, drawingFrame, 0);
 }
