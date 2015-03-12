@@ -16,6 +16,7 @@ Mat background;
 Mat backgroundgray;
 
 Mat floorImg = imread("src/floor.png");
+Mat michael = imread("src/michael.png");
 
 VideoCapture cap;
 
@@ -34,6 +35,7 @@ bool choosingDirection = false;
 bool ballThrown = false;
 bool ballLanded=false;
 bool showHighScoreList=false;
+
 clock_t start;
 clock_t showHighScoreListStart;
 
@@ -64,7 +66,9 @@ void addLight(){
 	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 
+	glEnable(GL_ALPHA_TEST);	
 	glEnable(GL_DEPTH_TEST);
+	glAlphaFunc(GL_GREATER, 0.5);
 	glDepthFunc(GL_LEQUAL);
 
 }
@@ -298,8 +302,7 @@ void checkCollision(){
 		}
 	}
 
-	if (powerX > 1.10 * 800 && powerX < 1.15 * 800){
-		cout << heightOfBall << endl;
+	if (powerX > 1.10 * 800 && powerX < 1.15 * 800){//HITS THE RIM
 		if (heightOfBall >= -50 && heightOfBall <= 30){
 			hitBoard = -1;
 		}
@@ -333,7 +336,7 @@ void idle(){
 			strs << (60 - (clock() - start) / (double)CLOCKS_PER_SEC);
 			putText(drawingFrame, strs.str(), Point(10, 50), FONT_HERSHEY_SCRIPT_SIMPLEX, 1, Scalar(0, 0, 0));
 
-			if ((10 - (clock() - start) / (double)CLOCKS_PER_SEC <= 0)){
+			if ((60 - (clock() - start) / (double)CLOCKS_PER_SEC <= 0)){
 				//gameStarted = false;
 				showHighScoreList=true;
 				showHighScoreListStart=clock();
