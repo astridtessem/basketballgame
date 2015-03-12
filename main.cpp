@@ -33,6 +33,7 @@ bool choosingPower=false;
 bool choosingDirection = false;
 bool ballThrown = false;
 bool ballLanded=false;
+clock_t start;
 
 int hitBoard = 1;
 
@@ -63,48 +64,45 @@ void addLight(){
 
 }
 
-static void DrawParallelepiped(GLfloat sizeX, GLfloat sizeY, GLfloat sizeZ, GLenum type)
-{
+static void DrawParallelepiped(GLfloat sizeX, GLfloat sizeY, GLfloat sizeZ, GLenum type){
 
-static GLfloat n[6][3] =
-{
-{-1.0, 0.0, 0.0},
-{0.0, 1.0, 0.0},
-{1.0, 0.0, 0.0},
-{0.0, -1.0, 0.0},
-{0.0, 0.0, 1.0},
-{0.0, 0.0, -1.0}
-};
+	static GLfloat n[6][3] = {
+		{-1.0, 0.0, 0.0},
+		{0.0, 1.0, 0.0},
+		{1.0, 0.0, 0.0},
+		{0.0, -1.0, 0.0},
+		{0.0, 0.0, 1.0},
+		{0.0, 0.0, -1.0}
+	};
 
-static GLint faces[6][4] =
-{
-{0, 1, 2, 3},
-{3, 2, 6, 7},
-{7, 6, 5, 4},
-{4, 5, 1, 0},
-{5, 6, 2, 1},
-{7, 4, 0, 3}
-};
+	static GLint faces[6][4] = {
+		{0, 1, 2, 3},
+		{3, 2, 6, 7},
+		{7, 6, 5, 4},
+		{4, 5, 1, 0},
+		{5, 6, 2, 1},
+		{7, 4, 0, 3}
+	};
 
-GLfloat v[8][3];
-GLint i;
+	GLfloat v[8][3];
+	GLint i;
 
-v[0][0] = v[1][0] = v[2][0] = v[3][0] = -sizeX / 2;
-v[4][0] = v[5][0] = v[6][0] = v[7][0] = sizeX / 2;
-v[0][1] = v[1][1] = v[4][1] = v[5][1] = -sizeY / 2;
-v[2][1] = v[3][1] = v[6][1] = v[7][1] = sizeY / 2;
-v[0][2] = v[3][2] = v[4][2] = v[7][2] = -sizeZ / 2;
-v[1][2] = v[2][2] = v[5][2] = v[6][2] = sizeZ / 2;
+	v[0][0] = v[1][0] = v[2][0] = v[3][0] = -sizeX / 2;
+	v[4][0] = v[5][0] = v[6][0] = v[7][0] = sizeX / 2;
+	v[0][1] = v[1][1] = v[4][1] = v[5][1] = -sizeY / 2;
+	v[2][1] = v[3][1] = v[6][1] = v[7][1] = sizeY / 2;
+	v[0][2] = v[3][2] = v[4][2] = v[7][2] = -sizeZ / 2;
+	v[1][2] = v[2][2] = v[5][2] = v[6][2] = sizeZ / 2;
 
-for (i = 5; i >= 0; i--) {
-glBegin(type);
-glNormal3fv(&n[i][0]);
-glVertex3fv(&v[faces[i][0]][0]);
-glVertex3fv(&v[faces[i][1]][0]);
-glVertex3fv(&v[faces[i][2]][0]);
-glVertex3fv(&v[faces[i][3]][0]);
-glEnd();
-}
+	for (i = 5; i >= 0; i--) {
+	glBegin(type);
+	glNormal3fv(&n[i][0]);
+	glVertex3fv(&v[faces[i][0]][0]);
+	glVertex3fv(&v[faces[i][1]][0]);
+	glVertex3fv(&v[faces[i][2]][0]);
+	glVertex3fv(&v[faces[i][3]][0]);
+	glEnd();
+	}
 
 }
 
@@ -112,9 +110,8 @@ void display(){
 
 	glDrawPixels(drawingFrame.size().width, drawingFrame.size().height, GL_BGR_EXT, GL_UNSIGNED_BYTE, drawingFrame.ptr());
 
-
 	if (gameStarted){
-
+		
 		glDrawPixels(floorImg.size().width, floorImg.size().height, GL_BGR_EXT, GL_UNSIGNED_BYTE, floorImg.ptr());
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glPushMatrix();
@@ -132,7 +129,6 @@ void display(){
         glRotated(-20,0,0,1);
 
         DrawParallelepiped(0.6,0.5,0.01,GL_POLYGON);
-
 
         glLoadIdentity();
 		glColor3f(1, 0.45f, 0);
@@ -157,7 +153,6 @@ void display(){
 		glPopMatrix();
 
 	}
-
 
 	glutSwapBuffers();
 	glutPostRedisplay();
@@ -230,6 +225,7 @@ void startGameButton(){
 
 	if (countNonZero(difference(Rect(Point(10, 10), Point(60, 30))))>500){
 		cout << "Game started";
+		start = clock();
 		gameStarted = true;
 	}
 }
@@ -293,40 +289,51 @@ void idle(){
 		if (!gameStarted){
 			startGameButton();
 		}
-		else if (!powerChoosen){
-            choosePower();
-		}
-		else if (!directionChoosen){
-			chooseDirection();
-		}
-		else if (!ballThrown){
-			cout << direction << endl;
-            powerX=power*cos((direction*M_PI)/180);
-            powerY=power*sin((direction*M_PI)/180);
-            ballThrown=true;
-		}
-        else if(!ballLanded){
-			powerX=powerX+power*cos((direction*M_PI)/180) * hitBoard;
-			cout << "powerX: " << powerX << endl;
-			if (powerX > 1.7*800){
-				ballLanded = true;
-			}
-			if (powerX < -0.5 * 800){
-				ballLanded = true;
+
+		else if(gameStarted){
+			rectangle(drawingFrame, Point(10, 10), Point(120, 60), Scalar(0, 0, 255), CV_FILLED);
+			ostringstream strs;
+			strs << (60 - (clock() - start) / (double)CLOCKS_PER_SEC);
+			putText(drawingFrame, strs.str(), Point(10, 50), FONT_HERSHEY_SCRIPT_SIMPLEX, 1, Scalar(0, 0, 0));
+
+			if ((60 - (clock() - start) / (double)CLOCKS_PER_SEC <= 0)){
+				gameStarted = false;
+				reset();
 			}
 
-			if (powerX > 1.45 * 800 && powerX < 1.50*800){ 
-				if (heightOfBall > -200 && heightOfBall < 400){
-					hitBoard = -1;
+			if (!powerChoosen){
+				choosePower();
+			}
+			else if (!directionChoosen){
+				chooseDirection();
+			}
+			else if (!ballThrown){
+				powerX = power*cos((direction*M_PI) / 180);
+				powerY = power*sin((direction*M_PI) / 180);
+				ballThrown = true;
+			}
+			else if (!ballLanded){
+				powerX = powerX + power*cos((direction*M_PI) / 180) * hitBoard;
+				if (powerX > 1.7 * 800){
+					ballLanded = true;
 				}
+				if (powerX < -0.5 * 800){
+					ballLanded = true;
+				}
+
+				if (powerX > 1.45 * 800 && powerX < 1.50 * 800){
+					if (heightOfBall > -200 && heightOfBall < 400){
+						hitBoard = -1;
+					}
+				}
+
+				calculateHeight();
+			}
+			else if (ballLanded){
+				reset();
 			}
 
-            calculateHeight();
-        }
-		else if (ballLanded){
-			reset();
 		}
-
 	}
 
 	cv::flip(drawingFrame, drawingFrame, 0);
@@ -355,5 +362,4 @@ int main(int argc, char** argv)
 	glutMainLoop();
 
 	return 0;
-
 }
