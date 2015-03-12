@@ -34,10 +34,9 @@ bool choosingPower=false;
 bool choosingDirection = false;
 bool ballThrown = false;
 bool ballLanded=false;
-bool showHighScoreList=false;
-
+bool showScore=false;
 clock_t start;
-clock_t showHighScoreListStart;
+clock_t showScoreStart;
 
 int hitBoard = 1;
 bool hit = false;
@@ -206,13 +205,13 @@ void keyboard(unsigned char key, int x, int y){
 	}
 }
 
-void highScore(){
+void score(){
 
-    if((5 - (clock() - showHighScoreListStart) / (double)CLOCKS_PER_SEC)<0){
+    if((5 - (clock() - showScoreStart) / (double)CLOCKS_PER_SEC)<0){
         gameStarted=false;
-        showHighScoreList=false;
+        showScore=false;
     }
-    cout<<"highscore";
+    cout<<"score";
 
 
 }
@@ -326,8 +325,8 @@ void idle(){
 			startGameButton();
 		}
 
-		else if(showHighScoreList){
-            highScore();
+		else if(showScore){
+            score();
 		}
 
 		else if(gameStarted){
@@ -338,8 +337,8 @@ void idle(){
 
 			if ((60 - (clock() - start) / (double)CLOCKS_PER_SEC <= 0)){
 				//gameStarted = false;
-				showHighScoreList=true;
-				showHighScoreListStart=clock();
+				showScore=true;
+				showScoreStart=clock();
 				reset();
 				numberOfHits=0;
 			}
@@ -381,7 +380,7 @@ void idle(){
                     }
 				}
 
-		
+
 				calculateHeight();
 				checkCollision();
 			}
