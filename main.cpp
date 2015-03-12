@@ -273,6 +273,21 @@ void calculateHeight(){
     //cout<<"\n powerY: " <<powerY;
 }
 
+void checkCollision(){
+	if (powerX > 1.45 * 800 && powerX < 1.50 * 800){ //HITS THE BOARD
+		if (heightOfBall > -200 && heightOfBall < 400){
+			hitBoard = -1;
+		}
+	}
+
+	if (powerX > 1.10 * 800 && powerX < 1.15 * 800){
+		cout << heightOfBall << endl;
+		if (heightOfBall >= -50 && heightOfBall <= 30){
+			hitBoard = -1;
+		}
+	}
+}
+
 void idle(){
 
 	if (!(gameStarted && powerChoosen && directionChoosen && ballThrown && !ballLanded)){
@@ -296,7 +311,7 @@ void idle(){
 			strs << (60 - (clock() - start) / (double)CLOCKS_PER_SEC);
 			putText(drawingFrame, strs.str(), Point(10, 50), FONT_HERSHEY_SCRIPT_SIMPLEX, 1, Scalar(0, 0, 0));
 
-			if ((60 - (clock() - start) / (double)CLOCKS_PER_SEC <= 0)){
+			if ((60  - (clock() - start) / (double)CLOCKS_PER_SEC <= 0)){
 				gameStarted = false;
 				reset();
 			}
@@ -321,13 +336,8 @@ void idle(){
 					ballLanded = true;
 				}
 
-				if (powerX > 1.45 * 800 && powerX < 1.50 * 800){
-					if (heightOfBall > -200 && heightOfBall < 400){
-						hitBoard = -1;
-					}
-				}
-
 				calculateHeight();
+				checkCollision();
 			}
 			else if (ballLanded){
 				reset();
