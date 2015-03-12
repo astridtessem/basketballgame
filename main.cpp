@@ -33,9 +33,12 @@ bool choosingPower=false;
 bool choosingDirection = false;
 bool ballThrown = false;
 bool ballLanded=false;
+bool showHighScoreList=false;
 clock_t start;
+clock_t showHighScoreListStart;
 
 int hitBoard = 1;
+bool hit = false;
 
 double heightOfBall=0;
 
@@ -43,6 +46,8 @@ Point2f ballPos=Point2f(0.6,0);
 
 double powerX=0;
 double powerY=0;
+
+int numberOfHits=0;
 
 void addLight(){
 
@@ -111,7 +116,7 @@ void display(){
 	glDrawPixels(drawingFrame.size().width, drawingFrame.size().height, GL_BGR_EXT, GL_UNSIGNED_BYTE, drawingFrame.ptr());
 
 	if (gameStarted){
-		
+
 		glDrawPixels(floorImg.size().width, floorImg.size().height, GL_BGR_EXT, GL_UNSIGNED_BYTE, floorImg.ptr());
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glPushMatrix();
@@ -138,7 +143,7 @@ void display(){
 		glTranslated(-0.075, 0, 0);
         glutSolidCube(0.05);
 
-        
+
 		glLoadIdentity();
 		glColor3f(1, 0.45f, 0);
 		glTranslated(-0.97, -0.42, 0);
@@ -177,6 +182,7 @@ void reset(){
 	choosingPower = false;
 	ballLanded = false;
 	ballThrown = false;
+	hit=false;
 }
 
 void keyboard(unsigned char key, int x, int y){
@@ -194,6 +200,17 @@ void keyboard(unsigned char key, int x, int y){
 	default:
 		break;
 	}
+}
+
+void highScore(){
+
+    if((5 - (clock() - showHighScoreListStart) / (double)CLOCKS_PER_SEC)<0){
+        gameStarted=false;
+        showHighScoreList=false;
+    }
+    cout<<"highscore";
+
+
 }
 
 void calcOpticalFlow(){
@@ -267,6 +284,7 @@ void calculateHeight(){
 
     heightOfBall=heightOfBall+powerY;
     powerY=powerY-1;
+    //If ball hits the floor
     if(heightOfBall<-800){
 		powerY = -powerY;
     }
@@ -305,15 +323,22 @@ void idle(){
 			startGameButton();
 		}
 
+		else if(showHighScoreList){
+            highScore();
+		}
+
 		else if(gameStarted){
 			rectangle(drawingFrame, Point(10, 10), Point(120, 60), Scalar(0, 0, 255), CV_FILLED);
 			ostringstream strs;
 			strs << (60 - (clock() - start) / (double)CLOCKS_PER_SEC);
 			putText(drawingFrame, strs.str(), Point(10, 50), FONT_HERSHEY_SCRIPT_SIMPLEX, 1, Scalar(0, 0, 0));
 
-			if ((60  - (clock() - start) / (double)CLOCKS_PER_SEC <= 0)){
-				gameStarted = false;
+			if ((10 - (clock() - start) / (double)CLOCKS_PER_SEC <= 0)){
+				//gameStarted = false;
+				showHighScoreList=true;
+				showHighScoreListStart=clock();
 				reset();
+				numberOfHits=0;
 			}
 
 			if (!powerChoosen){
@@ -329,13 +354,31 @@ void idle(){
 			}
 			else if (!ballLanded){
 				powerX = powerX + power*cos((direction*M_PI) / 180) * hitBoard;
+				//If ball is out of screen
 				if (powerX > 1.7 * 800){
 					ballLanded = true;
 				}
+				//if ball is out of screen
 				if (powerX < -0.5 * 800){
 					ballLanded = true;
 				}
 
+				//if ball hits the loop
+				if(powerX<1.35*800 && powerX>1.15*800){
+                    if(heightOfBall>-20 && heightOfBall<20){
+                        if(powerY>0 && hit==false){
+                            //hit is actually not true, but it is not possible to increase numberOfHits in this shot now!
+                            hit=true;
+                        }
+                        if(powerY<0 && hit==false){
+                            hit=true;
+                            numberOfHits++;
+                            cout<<"number of hits: " << numberOfHits << endl;
+                        }
+                    }
+				}
+
+		
 				calculateHeight();
 				checkCollision();
 			}
