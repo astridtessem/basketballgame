@@ -16,7 +16,7 @@ Mat background;
 Mat backgroundgray;
 
 Mat floorImg = imread("src/floor.png");
-Mat michael = imread("src/michael.png");
+//Mat michael = imread("src/michael.png");
 
 VideoCapture cap;
 
@@ -35,8 +35,11 @@ bool choosingDirection = false;
 bool ballThrown = false;
 bool ballLanded=false;
 bool showScore=false;
+bool showHighscore=false;
+
 clock_t start;
 clock_t showScoreStart;
+clock_t highscoreClock;
 
 int hitBoard = 1;
 bool hit = false;
@@ -65,7 +68,7 @@ void addLight(){
 	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 
-	glEnable(GL_ALPHA_TEST);	
+	glEnable(GL_ALPHA_TEST);
 	glEnable(GL_DEPTH_TEST);
 	glAlphaFunc(GL_GREATER, 0.5);
 	glDepthFunc(GL_LEQUAL);
@@ -116,7 +119,12 @@ static void DrawParallelepiped(GLfloat sizeX, GLfloat sizeY, GLfloat sizeZ, GLen
 
 void display(){
 
+
 	glDrawPixels(drawingFrame.size().width, drawingFrame.size().height, GL_BGR_EXT, GL_UNSIGNED_BYTE, drawingFrame.ptr());
+
+
+
+
 
 	if (gameStarted){
 
@@ -236,19 +244,33 @@ void subtractImages(){
 	resize(difference, difference, Size(640, 480));
 	threshold(difference, difference, 50, 255, 0);
 	cv::flip(difference, difference, 1);
-	//imshow("Difference", difference);
+	imshow("Difference", difference);
 }
 
 void startGameButton(){
 	rectangle(drawingFrame, Point(10, 10), Point(120, 60), Scalar(0, 0, 255), CV_FILLED);
 	putText(drawingFrame, "Start game", Point(14, 40), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 1, 8, false);
 
-	if (countNonZero(difference(Rect(Point(10, 10), Point(60, 30))))>500){
+	if (countNonZero(difference(Rect(Point(10, 10), Point(120, 60))))>500){
 		cout << "Game started";
 		start = clock();
 		gameStarted = true;
 	}
 }
+
+void showHighscoreButton(){
+    rectangle(drawingFrame, Point(520,10), Point(630, 60), Scalar(0, 0, 255), CV_FILLED);
+    putText(drawingFrame, "Highscore", Point(524, 40), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 1, 8, false);
+
+	if (countNonZero(difference(Rect(Point(520, 10), Point(630, 60))))>500){
+		cout << "highscore";
+		showHighscore=true;
+		highscoreClock=clock();
+
+	}
+}
+
+
 
 void choosePower(){
 
@@ -318,16 +340,31 @@ void idle(){
 	cv::flip(drawingFrame, drawingFrame, 1);
 
 
+
+
 	if (!background.empty()){
 		//calcOpticalFlow();
 		subtractImages();
-		if (!gameStarted){
+        if(showHighscore){
+            rectangle(drawingFrame, Point(0,0), Point(640, 480), Scalar(0, 0, 0), CV_FILLED);
+            rectangle(drawingFrame, Point(240,10), Point(350, 60), Scalar(0, 0, 255), CV_FILLED);
+            putText(drawingFrame, "back", Point(244, 40), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 1, 8, false);
+
+            if ((countNonZero(difference(Rect(Point(240, 10), Point(350, 60))))>500)){ //&& (2 - (clock() - highscoreClock) / (double)CLOCKS_PER_SEC)<0){
+
+                showHighscore=false;
+            }
+		}
+
+		else if (!gameStarted){
 			startGameButton();
+			showHighscoreButton();
 		}
 
 		else if(showScore){
             score();
 		}
+
 
 		else if(gameStarted){
 			rectangle(drawingFrame, Point(10, 10), Point(120, 60), Scalar(0, 0, 255), CV_FILLED);
