@@ -15,6 +15,7 @@ Mat drawingFrame;
 Mat background;
 Mat backgroundgray;
 
+Mat michaelImg = imread("src/michael.jpg");
 Mat floorImg = imread("src/floor.png");
 //Mat michael = imread("src/michael.png");
 
@@ -119,14 +120,19 @@ static void DrawParallelepiped(GLfloat sizeX, GLfloat sizeY, GLfloat sizeZ, GLen
 
 void display(){
 
+    if(showScore==false){
+       glDrawPixels(drawingFrame.size().width, drawingFrame.size().height, GL_BGR_EXT, GL_UNSIGNED_BYTE, drawingFrame.ptr());
+    }
+    if(showScore==true){
+        glDrawPixels(michaelImg.size().width, michaelImg.size().height, GL_BGR_EXT, GL_UNSIGNED_BYTE, michaelImg.ptr());
+    }
 
-	glDrawPixels(drawingFrame.size().width, drawingFrame.size().height, GL_BGR_EXT, GL_UNSIGNED_BYTE, drawingFrame.ptr());
 
 
 
 
 
-	if (gameStarted){
+	if (gameStarted==true && showScore==false){
 
 		glDrawPixels(floorImg.size().width, floorImg.size().height, GL_BGR_EXT, GL_UNSIGNED_BYTE, floorImg.ptr());
 		glClear(GL_DEPTH_BUFFER_BIT);
@@ -219,7 +225,13 @@ void score(){
         gameStarted=false;
         showScore=false;
     }
-    cout<<"score";
+
+    char str[200];
+    sprintf(str,"you got  %i  of hits",numberOfHits);
+
+    putText(michaelImg, str, Point(244, 40), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 1, 8, false);
+
+
 
 
 }
@@ -332,12 +344,20 @@ void checkCollision(){
 
 void idle(){
 
+    if(showScore==true){
+         michaelImg = imread("src/michael.jpg");
+    }
+
+
+
+
 	if (!(gameStarted && powerChoosen && directionChoosen && ballThrown && !ballLanded)){
 		cap >> currentFrame;
 		cvtColor(currentFrame, currentFrameGray, CV_BGR2GRAY);
 	}
 	drawingFrame = currentFrame.clone();
 	cv::flip(drawingFrame, drawingFrame, 1);
+	flip(michaelImg,michaelImg,1);
 
 
 
@@ -372,7 +392,7 @@ void idle(){
 			strs << (60 - (clock() - start) / (double)CLOCKS_PER_SEC);
 			putText(drawingFrame, strs.str(), Point(10, 50), FONT_HERSHEY_SCRIPT_SIMPLEX, 1, Scalar(0, 0, 0));
 
-			if ((60 - (clock() - start) / (double)CLOCKS_PER_SEC <= 0)){
+			if ((5 - (clock() - start) / (double)CLOCKS_PER_SEC <= 0)){
 				//gameStarted = false;
 				showScore=true;
 				showScoreStart=clock();
@@ -429,6 +449,7 @@ void idle(){
 	}
 
 	cv::flip(drawingFrame, drawingFrame, 0);
+	flip(michaelImg,michaelImg,0);
 }
 
 int main(int argc, char** argv)
