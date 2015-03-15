@@ -224,30 +224,14 @@ void score(){
     if((5 - (clock() - showScoreStart) / (double)CLOCKS_PER_SEC)<0){
         gameStarted=false;
         showScore=false;
+		numberOfHits = 0;
     }
 
     char str[200];
-    sprintf(str,"you got  %i  of hits",numberOfHits);
+    sprintf(str,"You got %i hits!",numberOfHits);
 
-    putText(michaelImg, str, Point(244, 40), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 1, 8, false);
+    putText(michaelImg, str, Point(180, 90), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 0), 1, 8, false);
 
-
-
-
-}
-
-void calcOpticalFlow(){
-	calcOpticalFlowFarneback(prevFrameGray, currentFrameGray, flow, 0.5, 1, 3, 1, 5, 1.1, 0);
-	Mat xy[2];
-	Mat magnitude;
-	Mat angle;
-	split(flow, xy);
-
-	cartToPolar(xy[0], xy[1], magnitude, angle, true);
-	resize(magnitude, flow, Size(640, 480));
-	threshold(flow, flow, 10, 255, 0);
-	cv::flip(flow, flow, 1);
-	imshow("flow", flow);
 }
 
 void subtractImages(){
@@ -256,7 +240,7 @@ void subtractImages(){
 	resize(difference, difference, Size(640, 480));
 	threshold(difference, difference, 50, 255, 0);
 	cv::flip(difference, difference, 1);
-	imshow("Difference", difference);
+	//imshow("Difference", difference);
 }
 
 void startGameButton(){
@@ -348,9 +332,6 @@ void idle(){
          michaelImg = imread("src/michael.jpg");
     }
 
-
-
-
 	if (!(gameStarted && powerChoosen && directionChoosen && ballThrown && !ballLanded)){
 		cap >> currentFrame;
 		cvtColor(currentFrame, currentFrameGray, CV_BGR2GRAY);
@@ -392,12 +373,12 @@ void idle(){
 			strs << (60 - (clock() - start) / (double)CLOCKS_PER_SEC);
 			putText(drawingFrame, strs.str(), Point(10, 50), FONT_HERSHEY_SCRIPT_SIMPLEX, 1, Scalar(0, 0, 0));
 
-			if ((5 - (clock() - start) / (double)CLOCKS_PER_SEC <= 0)){
+			if ((10 - (clock() - start) / (double)CLOCKS_PER_SEC <= 0)){
 				//gameStarted = false;
 				showScore=true;
 				showScoreStart=clock();
 				reset();
-				numberOfHits=0;
+				
 			}
 
 			if (!powerChoosen){
