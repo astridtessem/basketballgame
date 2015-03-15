@@ -37,6 +37,11 @@ bool ballThrown = false;
 bool ballLanded=false;
 bool showScore=false;
 bool showHighscore=false;
+bool enterName = false;
+
+Vector<string> highscore;
+
+string nameEntered;
 
 clock_t start;
 clock_t showScoreStart;
@@ -202,7 +207,50 @@ void reset(){
 	hit=false;
 }
 
+void writeToHighscore(){
+	vector<string> temp;
+	for (int i = 1; i < highscore.size(); i += 2){
+		int value = atoi(highscore[i].c_str());
+		if (numberOfHits >= value){
+			temp.push_back(nameEntered);
+			string val = to_string(numberOfHits);
+			temp.push_back(val);
+		}
+		else{
+			temp.push_back(highscore[i - 1]);
+			temp.push_back(highscore[i]);
+		}
+	}
+
+	if (temp.size() < 20){
+		temp.push_back(highscore[highscore.size() - 2]);
+		temp.push_back(highscore[highscore.size() - 1]);
+	}
+
+	highscore.clear();
+
+	for (int i = 0; i < temp.size(); i++){
+		highscore.push_back(temp[i]);
+	}
+
+	ofstream writer("src/highscore.txt");
+	for (int i = 0; i < highscore.size(); i++){
+		writer << highscore[i] << endl;
+	}
+	writer.close();
+	numberOfHits = 0;
+}
+
 void keyboard(unsigned char key, int x, int y){
+	if (enterName){
+		if (key == 13){
+			enterName = false;
+			writeToHighscore();
+			nameEntered = "";
+		}
+		nameEntered += key;
+		cout << nameEntered << endl;
+	}
 	switch (key){
 	case 'q':
 		exit(0);
@@ -224,7 +272,11 @@ void score(){
     if((5 - (clock() - showScoreStart) / (double)CLOCKS_PER_SEC)<0){
         gameStarted=false;
         showScore=false;
-		numberOfHits = 0;
+		int value = atoi(highscore[highscore.size() - 1].c_str());
+		if (numberOfHits >= value){
+			enterName = true;
+			reset();
+		}
     }
 
     char str[200];
@@ -326,6 +378,31 @@ void checkCollision(){
 	}
 }
 
+void showHighscoreFunction(){
+	rectangle(drawingFrame, Point(0, 0), Point(640, 480), Scalar(0, 0, 0), CV_FILLED);
+	rectangle(drawingFrame, Point(240, 10), Point(350, 60), Scalar(0, 0, 255), CV_FILLED);
+	putText(drawingFrame, "back", Point(244, 40), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 1, 8, false);
+
+	if ((countNonZero(difference(Rect(Point(240, 10), Point(350, 60))))>500)){ //&& (2 - (clock() - highscoreClock) / (double)CLOCKS_PER_SEC)<0){
+		showHighscore = false;
+	}
+
+	int temp = 100;
+
+	for (int i = 0; i < highscore.size(); i += 2){
+		ostringstream ost;
+		ost << highscore[i] << " : " << highscore[i + 1];
+		putText(drawingFrame, ost.str(), Point(200, temp), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 1, 8, false);
+		temp += 20;
+	}
+}
+
+void enterNameFunction(){
+	rectangle(drawingFrame, Point(0, 0), Point(640, 480), Scalar(255, 255, 255), CV_FILLED);
+	putText(drawingFrame, "Enter your name: ", Point(200, 40), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 0), 1, 8, false);
+	putText(drawingFrame, nameEntered, Point(200, 200), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 1, 8, false);
+}
+
 void idle(){
 
     if(showScore==true){
@@ -344,17 +421,13 @@ void idle(){
 
 
 	if (!background.empty()){
-		//calcOpticalFlow();
 		subtractImages();
         if(showHighscore){
-            rectangle(drawingFrame, Point(0,0), Point(640, 480), Scalar(0, 0, 0), CV_FILLED);
-            rectangle(drawingFrame, Point(240,10), Point(350, 60), Scalar(0, 0, 255), CV_FILLED);
-            putText(drawingFrame, "back", Point(244, 40), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 1, 8, false);
+			showHighscoreFunction();
+		}
 
-            if ((countNonZero(difference(Rect(Point(240, 10), Point(350, 60))))>500)){ //&& (2 - (clock() - highscoreClock) / (double)CLOCKS_PER_SEC)<0){
-
-                showHighscore=false;
-            }
+		else if (enterName){
+			enterNameFunction();
 		}
 
 		else if (!gameStarted){
@@ -425,7 +498,6 @@ void idle(){
 			else if (ballLanded){
 				reset();
 			}
-
 		}
 	}
 
@@ -433,9 +505,23 @@ void idle(){
 	flip(michaelImg,michaelImg,0);
 }
 
+void readHighscore(){
+	ifstream reader("src/highscore.txt");
+	while (!reader.eof()){
+		string name;
+		string score;
+		reader >> name >> score;
+		highscore.push_back(name);
+		highscore.push_back(score);
+	}
+	reader.close();
+}
+
 int main(int argc, char** argv)
 {
 	cap = VideoCapture(0);
+
+	readHighscore();
 
 	flip(floorImg, floorImg, -1);
 	// initialize GLUT
