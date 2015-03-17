@@ -5,32 +5,28 @@
 using namespace cv;
 using namespace std;
 
-Mat currentFrame;
-Mat currentFrameGray;
-Mat prevFrame;
-Mat prevFrameGray;
-Mat flow;
-Mat difference;
-Mat drawingFrame;
-Mat background;
-Mat backgroundgray;
-
-Mat michaelImg = imread("src/michael.jpg");
-Mat floorImg = imread("src/floor.png");
-//Mat michael = imread("src/michael.png");
-
 VideoCapture cap;
 
-GLfloat ambientColor[] = { 0.2, 0.2, 0.2, 1.0 }; //Color(0.2, 0.2, 0.2)
+//-----------FRAMES--------//
 
+//Frame from camera
+Mat currentFrame;
+Mat currentFrameGray;
+//Frames to do background subtraction
+Mat difference;
+Mat background;
+Mat backgroundgray;
+//The frame we draw
+Mat drawingFrame;
+//images from file
+Mat michaelImg = imread("src/michael.jpg");
+Mat floorImg = imread("src/floor.png");
+
+
+// ------ Boolean values for the game structure ------ //
 bool gameStarted = false;
 bool powerChoosen = false;
 bool directionChoosen = false;
-double tempPower = 0;
-double power = 0;
-double tempDirection = 0;
-double direction;
-double step = M_PI/20;
 bool choosingPower=false;
 bool choosingDirection = false;
 bool ballThrown = false;
@@ -39,48 +35,50 @@ bool showScore=false;
 bool showHighscore=false;
 bool enterName = false;
 
+// Variables for throwing the ball
+double tempPower = 0;
+double power = 0;
+double tempDirection = 0;
+double direction;
+double step = M_PI/20;
+double powerX=0;
+double powerY=0;
+int hitBoard = 1;
+bool hit = false;
+double heightOfBall=0;
+
+//Score variables
 Vector<string> highscore;
+string nameEntered="";
+int numberOfHits=0;
 
-string nameEntered;
 
+//clock variables
 clock_t start;
 clock_t showScoreStart;
 clock_t highscoreClock;
 
-int hitBoard = 1;
-bool hit = false;
-
-double heightOfBall=0;
-
-Point2f ballPos=Point2f(0.6,0);
-
-double powerX=0;
-double powerY=0;
-
-int numberOfHits=0;
 
 void addLight(){
 
+    //enable and adding light
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
-
 	GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
 	GLfloat mat_shininess[] = { 50.0 };
 	GLfloat light_position[] = { 0.0, 0.0, -50.0, 0.0 };
 	glShadeModel(GL_SMOOTH);
-
-
 	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
 	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 
-	glEnable(GL_ALPHA_TEST);
+	//Enable depth
 	glEnable(GL_DEPTH_TEST);
-	glAlphaFunc(GL_GREATER, 0.5);
 	glDepthFunc(GL_LEQUAL);
 
 }
 
+//Function to draw some parts of the basketball hoop
 static void DrawParallelepiped(GLfloat sizeX, GLfloat sizeY, GLfloat sizeZ, GLenum type){
 
 	static GLfloat n[6][3] = {
@@ -125,38 +123,40 @@ static void DrawParallelepiped(GLfloat sizeX, GLfloat sizeY, GLfloat sizeZ, GLen
 
 void display(){
 
-    if(showScore==false){
-       glDrawPixels(drawingFrame.size().width, drawingFrame.size().height, GL_BGR_EXT, GL_UNSIGNED_BYTE, drawingFrame.ptr());
-    }
+
+    glDrawPixels(drawingFrame.size().width, drawingFrame.size().height, GL_BGR_EXT, GL_UNSIGNED_BYTE, drawingFrame.ptr());
+
+    //Draw micheal jordan image to show players score
     if(showScore==true){
         glDrawPixels(michaelImg.size().width, michaelImg.size().height, GL_BGR_EXT, GL_UNSIGNED_BYTE, michaelImg.ptr());
     }
 
+    //draw basketball, hoop and floor
+	else if (gameStarted==true){
 
-
-
-
-
-	if (gameStarted==true && showScore==false){
-
+        //Draw floor
 		glDrawPixels(floorImg.size().width, floorImg.size().height, GL_BGR_EXT, GL_UNSIGNED_BYTE, floorImg.ptr());
+
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glPushMatrix();
 		glColorMaterial(GL_FRONT, GL_DIFFUSE);
 		glEnable(GL_COLOR_MATERIAL);
+
+		//draw basketball
 		glColor3f(1, 0.45f, 0);
 		glTranslated(0.6 - powerX / 800, 0 + heightOfBall / 1000, 0);
 		glutSolidSphere(0.05, 20, 20);
 
+        //draw board behind hoop
         glLoadIdentity();
         glColor3f(0, 0, 0);
         glTranslated(-0.90, 0, 0);
         glTranslated(0, 0.1, 0);
         glRotated(87,0,1,0);
         glRotated(-20,0,0,1);
-
         DrawParallelepiped(0.6,0.5,0.01,GL_POLYGON);
 
+        //Draw cube between hoop and board
         glLoadIdentity();
 		glColor3f(1, 0.45f, 0);
 		glTranslated(-0.86, 0, 0);
@@ -165,13 +165,14 @@ void display(){
 		glTranslated(-0.075, 0, 0);
         glutSolidCube(0.05);
 
-
+        //Draw stand to basketball hoop
 		glLoadIdentity();
 		glColor3f(1, 0.45f, 0);
 		glTranslated(-0.97, -0.42, 0);
         glRotated(-20,1,0,0);
         DrawParallelepiped(0.05,1,0.05,GL_POLYGON);
 
+        //Draw hoop
 		glLoadIdentity();
 		glColor3f(1, 0.45f, 0);
 		glTranslated(-0.7, 0, 0);
@@ -184,11 +185,9 @@ void display(){
 	glutSwapBuffers();
 	glutPostRedisplay();
 
-	prevFrame = currentFrame.clone();
-	if (!prevFrame.empty())
-		cvtColor(prevFrame, prevFrameGray, CV_BGR2GRAY);
 }
 
+//function resets all values after game ends
 void reset(){
 	power = 0;
 	direction = 0;
@@ -205,27 +204,41 @@ void reset(){
 	ballLanded = false;
 	ballThrown = false;
 	hit=false;
+	nameEntered="";
 }
 
+//Update the highscore list and write it to file
 void writeToHighscore(){
-	vector<string> temp;
-	for (int i = 1; i < highscore.size(); i += 2){
-		int value = atoi(highscore[i].c_str());
-		if (numberOfHits >= value){
-			temp.push_back(nameEntered);
-			string val = to_string(numberOfHits);
-			temp.push_back(val);
-		}
-		else{
-			temp.push_back(highscore[i - 1]);
-			temp.push_back(highscore[i]);
-		}
-	}
 
-	if (temp.size() < 20){
-		temp.push_back(highscore[highscore.size() - 2]);
-		temp.push_back(highscore[highscore.size() - 1]);
-	}
+	//Updates the highscore list
+	vector<string> temp;
+
+    int i=1;
+    int value=0;
+    bool newScoreWritten=false;
+    while (temp.size()<highscore.size()+1 && temp.size()<20){
+        if(i<highscore.size()){
+            value = atoi(highscore[i].c_str());
+        }
+        else{
+            value=0;
+        }
+
+        if(numberOfHits>=value && !newScoreWritten){
+            temp.push_back(nameEntered);
+			stringstream convert;
+			convert<<numberOfHits;
+			string val = convert.str();
+			temp.push_back(val);
+			newScoreWritten=true;
+        }
+        else{
+
+            temp.push_back(highscore[i - 1]);
+			temp.push_back(highscore[i]);
+			i=i+2;
+        }
+    }
 
 	highscore.clear();
 
@@ -233,20 +246,26 @@ void writeToHighscore(){
 		highscore.push_back(temp[i]);
 	}
 
+
+    //Writes the new highscore list to file
 	ofstream writer("src/highscore.txt");
 	for (int i = 0; i < highscore.size(); i++){
-		writer << highscore[i] << endl;
+		writer << highscore[i];
+		if (i<highscore.size()-1){
+            writer<<endl;
+		}
 	}
 	writer.close();
 	numberOfHits = 0;
 }
 
 void keyboard(unsigned char key, int x, int y){
+    //Keyboard listener when player is entering his/hers name
 	if (enterName){
 		if (key == 13){
 			enterName = false;
 			writeToHighscore();
-			nameEntered = "";
+			nameEntered="";
 		}
 		nameEntered += key;
 		cout << nameEntered << endl;
@@ -267,13 +286,14 @@ void keyboard(unsigned char key, int x, int y){
 	}
 }
 
+
 void score(){
 
-    if((5 - (clock() - showScoreStart) / (double)CLOCKS_PER_SEC)<0){
+    if((3 - (clock() - showScoreStart) / (double)CLOCKS_PER_SEC)<0){
         gameStarted=false;
         showScore=false;
 		int value = atoi(highscore[highscore.size() - 1].c_str());
-		if (numberOfHits >= value){
+		if (numberOfHits >= value || highscore.size()<10 ){
 			enterName = true;
 			reset();
 		}
@@ -292,7 +312,7 @@ void subtractImages(){
 	resize(difference, difference, Size(640, 480));
 	threshold(difference, difference, 50, 255, 0);
 	cv::flip(difference, difference, 1);
-	//imshow("Difference", difference);
+	imshow("Difference", difference);
 }
 
 void startGameButton(){
@@ -400,10 +420,26 @@ void showHighscoreFunction(){
 void enterNameFunction(){
 	rectangle(drawingFrame, Point(0, 0), Point(640, 480), Scalar(255, 255, 255), CV_FILLED);
 	putText(drawingFrame, "Enter your name: ", Point(200, 40), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 0), 1, 8, false);
+
 	putText(drawingFrame, nameEntered, Point(200, 200), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 1, 8, false);
+
+}
+
+void readHighscore(){
+	ifstream reader("src/highscore.txt");
+	highscore.clear();
+	while (!reader.eof()){
+		string name;
+		string score;
+		reader >> name >> score;
+		highscore.push_back(name);
+		highscore.push_back(score);
+	}
+	reader.close();
 }
 
 void idle(){
+
 
     if(showScore==true){
          michaelImg = imread("src/michael.jpg");
@@ -433,6 +469,7 @@ void idle(){
 		else if (!gameStarted){
 			startGameButton();
 			showHighscoreButton();
+
 		}
 
 		else if(showScore){
@@ -446,12 +483,12 @@ void idle(){
 			strs << (60 - (clock() - start) / (double)CLOCKS_PER_SEC);
 			putText(drawingFrame, strs.str(), Point(10, 50), FONT_HERSHEY_SCRIPT_SIMPLEX, 1, Scalar(0, 0, 0));
 
-			if ((10 - (clock() - start) / (double)CLOCKS_PER_SEC <= 0)){
+			if ((30 - (clock() - start) / (double)CLOCKS_PER_SEC <= 0)){
 				//gameStarted = false;
 				showScore=true;
 				showScoreStart=clock();
 				reset();
-				
+
 			}
 
 			if (!powerChoosen){
@@ -505,17 +542,7 @@ void idle(){
 	flip(michaelImg,michaelImg,0);
 }
 
-void readHighscore(){
-	ifstream reader("src/highscore.txt");
-	while (!reader.eof()){
-		string name;
-		string score;
-		reader >> name >> score;
-		highscore.push_back(name);
-		highscore.push_back(score);
-	}
-	reader.close();
-}
+
 
 int main(int argc, char** argv)
 {
