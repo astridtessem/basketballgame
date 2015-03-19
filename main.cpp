@@ -218,13 +218,13 @@ void writeToHighscore(){
     bool newScoreWritten=false;
     while (temp.size()<highscore.size()+1 && temp.size()<20){
         if(i<highscore.size()){
-            value = atoi(highscore[i].c_str());
+            value = atoi(highscore[i].c_str()); //Converts the score from string to integer
         }
         else{
             value=0;
         }
 
-        if(numberOfHits>=value && !newScoreWritten){
+        if(numberOfHits>=value && !newScoreWritten){ //Checks if score is better than one of the entries is the highscore
             temp.push_back(nameEntered);
 			stringstream convert;
 			convert<<numberOfHits;
@@ -286,10 +286,9 @@ void keyboard(unsigned char key, int x, int y){
 	}
 }
 
-
+//Shows an image of michael jordan that tells the player how many times he/she scored
 void score(){
-
-    if((3 - (clock() - showScoreStart) / (double)CLOCKS_PER_SEC)<0){
+    if((3 - (clock() - showScoreStart) / (double)CLOCKS_PER_SEC)<0){ //Displays for 3 seconds
         gameStarted=false;
         showScore=false;
 		int value = atoi(highscore[highscore.size() - 1].c_str());
@@ -301,20 +300,21 @@ void score(){
 
     char str[200];
     sprintf(str,"You got %i hits!",numberOfHits);
-
     putText(michaelImg, str, Point(180, 90), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 0), 1, 8, false);
 
 }
 
+//Subtracts the current image from the background
 void subtractImages(){
 	resize(currentFrameGray, currentFrameGray, Size(320, 240));
 	absdiff(background, currentFrameGray, difference);
 	resize(difference, difference, Size(640, 480));
-	threshold(difference, difference, 50, 255, 0);
+	threshold(difference, difference, 30, 255, 0);
 	cv::flip(difference, difference, 1);
-	imshow("Difference", difference);
+	//imshow("Difference", difference);
 }
 
+//Draws the button to start the game
 void startGameButton(){
 	rectangle(drawingFrame, Point(10, 10), Point(120, 60), Scalar(0, 0, 255), CV_FILLED);
 	putText(drawingFrame, "Start game", Point(14, 40), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 1, 8, false);
@@ -326,6 +326,7 @@ void startGameButton(){
 	}
 }
 
+//Draws the button that takes the player to the highscore list
 void showHighscoreButton(){
     rectangle(drawingFrame, Point(520,10), Point(630, 60), Scalar(0, 0, 255), CV_FILLED);
     putText(drawingFrame, "Highscore", Point(524, 40), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 1, 8, false);
@@ -338,11 +339,11 @@ void showHighscoreButton(){
 	}
 }
 
-
-
+//Functionality for choosing power
 void choosePower(){
 
-	rectangle(drawingFrame, Point(580, 10), Point(630, 160), Scalar(0, 0, 0), CV_FILLED);
+	//Draws the rectangles that makes up the power meter. The second rectangle is represent the current power level and will oscillate from minimum to maximum
+	rectangle(drawingFrame, Point(580, 10), Point(630, 160), Scalar(0, 0, 0), CV_FILLED); 
 	rectangle(drawingFrame, Point(580, 160 - (abs(sin(tempPower)) * 45 * 10 / 3)), Point(630, 160), Scalar(0, 0, 255), CV_FILLED);
 
 	if (countNonZero(difference(Rect(Point(480, 220), Point(540, 260))))>500){
@@ -357,8 +358,9 @@ void choosePower(){
     }
 }
 
+//Functionality for choosing direction
 void chooseDirection(){
-
+	//Draws the line that indicate the direction. 
 	line(drawingFrame, Point(510, 240), Point(510 - cos(abs(sin(tempDirection))) * 110, 240 - sin(abs(sin(tempDirection))) * 110), Scalar(0, 0, 255), 5);
 
 	if (countNonZero(difference(Rect(Point(480, 220), Point(540, 260))))>500){
@@ -373,17 +375,19 @@ void chooseDirection(){
 	}
 }
 
+//Returns the current height of the ball 
 void calculateHeight(){
 
     heightOfBall=heightOfBall+powerY;
     powerY=powerY-1;
-    //If ball hits the floor
-    if(heightOfBall<-800){
-		powerY = -powerY;
+    //If ball hits the floor|
+    if(heightOfBall<-800){ 
+		powerY = -powerY;		//Simulate bouncing by setting the speed of the ball in the opposite y-direction
     }
-    //cout<<"\n powerY: " <<powerY;
 }
 
+//Checks if the ball collides
+//Hit board is an integer that if negative the ball will go from left to right and if positive the ball will go from right to left (Towards the hoop)
 void checkCollision(){
 	if (powerX > 1.45 * 800 && powerX < 1.50 * 800){ //HITS THE BOARD
 		if (heightOfBall > -200 && heightOfBall < 400){
@@ -398,12 +402,14 @@ void checkCollision(){
 	}
 }
 
+//Functionality for showing the highscore
 void showHighscoreFunction(){
+	//First rectangle is for filling the screen black. Second is for the back button 
 	rectangle(drawingFrame, Point(0, 0), Point(640, 480), Scalar(0, 0, 0), CV_FILLED);
 	rectangle(drawingFrame, Point(240, 10), Point(350, 60), Scalar(0, 0, 255), CV_FILLED);
-	putText(drawingFrame, "back", Point(244, 40), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 1, 8, false);
+	putText(drawingFrame, "Back", Point(244, 40), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 1, 8, false);
 
-	if ((countNonZero(difference(Rect(Point(240, 10), Point(350, 60))))>500)){ //&& (2 - (clock() - highscoreClock) / (double)CLOCKS_PER_SEC)<0){
+	if ((countNonZero(difference(Rect(Point(240, 10), Point(350, 60))))>500)){ //Goes back to main menu
 		showHighscore = false;
 	}
 
@@ -417,14 +423,17 @@ void showHighscoreFunction(){
 	}
 }
 
+//Screen where player can enter name for the highscore
 void enterNameFunction(){
 	rectangle(drawingFrame, Point(0, 0), Point(640, 480), Scalar(255, 255, 255), CV_FILLED);
 	putText(drawingFrame, "Enter your name: ", Point(200, 40), FONT_HERSHEY_SIMPLEX, 0.8, Scalar(0, 0, 0), 1, 8, false);
 
+	//Displays the input from player
 	putText(drawingFrame, nameEntered, Point(200, 200), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 255, 0), 1, 8, false);
 
 }
 
+//Functionality for reading from the highscore file
 void readHighscore(){
 	ifstream reader("src/highscore.txt");
 	highscore.clear();
@@ -438,14 +447,13 @@ void readHighscore(){
 	reader.close();
 }
 
+//Idle function
 void idle(){
-
-
     if(showScore==true){
-         michaelImg = imread("src/michael.jpg");
+         michaelImg = imread("src/michael.jpg"); //Loads image of michael jackson
     }
 
-	if (!(gameStarted && powerChoosen && directionChoosen && ballThrown && !ballLanded)){
+	if (!(gameStarted && powerChoosen && directionChoosen && ballThrown && !ballLanded)){ //Stops updating the image from webcam while ball is in air
 		cap >> currentFrame;
 		cvtColor(currentFrame, currentFrameGray, CV_BGR2GRAY);
 	}
@@ -456,34 +464,33 @@ void idle(){
 
 
 
-	if (!background.empty()){
+	if (!background.empty()){ 
 		subtractImages();
-        if(showHighscore){
+        if(showHighscore){ //Show highscore
 			showHighscoreFunction();
 		}
 
-		else if (enterName){
+		else if (enterName){ //Show enter-name screen
 			enterNameFunction();
 		}
 
-		else if (!gameStarted){
+		else if (!gameStarted){ //Show main menu
 			startGameButton();
 			showHighscoreButton();
 
 		}
 
-		else if(showScore){
+		else if(showScore){ //Show score
             score();
 		}
 
-
-		else if(gameStarted){
+		else if(gameStarted){ //Show gameplay screen
 			rectangle(drawingFrame, Point(10, 10), Point(120, 60), Scalar(0, 0, 255), CV_FILLED);
 			ostringstream strs;
-			strs << (60 - (clock() - start) / (double)CLOCKS_PER_SEC);
-			putText(drawingFrame, strs.str(), Point(10, 50), FONT_HERSHEY_SCRIPT_SIMPLEX, 1, Scalar(0, 0, 0));
+			strs << (60 - (clock() - start) / (double)CLOCKS_PER_SEC); 
+			putText(drawingFrame, strs.str(), Point(10, 50), FONT_HERSHEY_SCRIPT_SIMPLEX, 1, Scalar(0, 0, 0)); //TIMER
 
-			if ((30 - (clock() - start) / (double)CLOCKS_PER_SEC <= 0)){
+			if ((60 - (clock() - start) / (double)CLOCKS_PER_SEC <= 0)){ //If time has run out show score and reset game
 				//gameStarted = false;
 				showScore=true;
 				showScoreStart=clock();
@@ -491,18 +498,18 @@ void idle(){
 
 			}
 
-			if (!powerChoosen){
+			if (!powerChoosen){ //if power is not chosen, allow the player to do so
 				choosePower();
 			}
-			else if (!directionChoosen){
+			else if (!directionChoosen){ //Allows player to choose direction
 				chooseDirection();
 			}
-			else if (!ballThrown){
+			else if (!ballThrown){ //Sets the power in x and y direction and throws the ball
 				powerX = power*cos((direction*M_PI) / 180);
 				powerY = power*sin((direction*M_PI) / 180);
 				ballThrown = true;
 			}
-			else if (!ballLanded){
+			else if (!ballLanded){ //Ball is in the air. The position of the ball is updated frame by frame
 				powerX = powerX + power*cos((direction*M_PI) / 180) * hitBoard;
 				//If ball is out of screen
 				if (powerX > 1.7 * 800){
@@ -520,15 +527,13 @@ void idle(){
                             //hit is actually not true, but it is not possible to increase numberOfHits in this shot now!
                             hit=true;
                         }
-                        if(powerY<0 && hit==false){
+                        if(powerY<0 && hit==false){ //The player scored
                             hit=true;
                             numberOfHits++;
                             cout<<"number of hits: " << numberOfHits << endl;
                         }
                     }
 				}
-
-
 				calculateHeight();
 				checkCollision();
 			}
@@ -542,13 +547,12 @@ void idle(){
 	flip(michaelImg,michaelImg,0);
 }
 
-
-
+//Main function
 int main(int argc, char** argv)
 {
-	cap = VideoCapture(0);
+	cap = VideoCapture(0); //initialize videocapture
 
-	readHighscore();
+	readHighscore(); //read the highscore list to file
 
 	flip(floorImg, floorImg, -1);
 	// initialize GLUT
@@ -557,7 +561,6 @@ int main(int argc, char** argv)
 	glutInitWindowPosition(100, 100);
 	glutInitWindowSize(640, 480);
 	glutCreateWindow("B0sket Ball Game");
-	//glutFullScreen();
 
 	// set up GUI callback functions
 	glutDisplayFunc(display);
